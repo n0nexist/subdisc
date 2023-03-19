@@ -4,7 +4,7 @@ Subnet discovery tool
 # Requirements
 <ul>
 <li>Linux pc with root permissions</li>
-<li>Python3 with scapy package installed</li>
+<li>Python3 with scapy and ipaddress packages installed</li>
 </ul>
 
 # Download & Install
