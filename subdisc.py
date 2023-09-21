@@ -15,15 +15,23 @@ except ImportError:
 	print("\033[31mInstalling ipaddress...")
 	os.popen("pip3 install ipaddress").read()
 
+try:
+    import manuf
+except ImportError:
+    print("\033[31mInstalling manuf...")
+    os.popen("pip3 install manuf").read()
+
 import socket
-import requests
 import threading
 import sys
+import time
+
+parser = manuf.MacParser()
 
 try:
 	if sys.argv[1]:
 		print(f"""
-SubnetDiscovery by n0nexist.github.io
+SubnetDiscovery 1.1 by n0nexist.github.io
 usage: {sys.argv[0]} (without arguments)
 		""")
 		exit(-1)
@@ -43,11 +51,12 @@ def getSubnet():
 def macAddrInfo(mac_address):
     """ gets info from a mac address """
 
-    endpoint = f"https://api.macvendors.com/{mac_address}"
-    r = requests.get(endpoint)
-    if r.status_code != 200:
-        return "*unknown mac vendor*"
-    return r.text
+    global parser
+
+    try:
+        return parser.get_manuf(mac_address)
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 def processHost(sent,received):
     """ prints information about an host """
