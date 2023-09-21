@@ -41,12 +41,14 @@ except Exception:
 def getSubnet():
     """ returns the current subnet """
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 80))
-    ip_address = s.getsockname()[0]
-    s.close()
-    subnet = ipaddress.IPv4Network(f"{ip_address}/24", strict=False)
-    return str(subnet)
+    subnets = os.popen("ip addr").read().split("inet ")
+
+    for x in range(len(subnets)):
+        if x>0:
+            y = subnets[x].split(" ")[0]
+            print(f"\033[0;36m{x}\033[0m) \033[4;32m{y}\033[0m")
+    
+    return subnets[int(input("\n\033[36msubnet: "))].split(" ")[0]
 
 def macAddrInfo(mac_address):
     """ gets info from a mac address """
@@ -58,6 +60,16 @@ def macAddrInfo(mac_address):
     except Exception as e:
         return f"Error: {str(e)}"
 
+def appendToFile(stri):
+    """ appends a string to the subdisc.txt file """
+
+    try:
+        f = open("subdisc.txt","a")
+        f.write(stri)
+        f.close()
+    except Exception as e:
+        print(f"\033[31m{e}")
+
 def processHost(sent,received):
     """ prints information about an host """
 
@@ -67,7 +79,12 @@ def processHost(sent,received):
         hostname = socket.gethostbyaddr(ip)[0]
     except:
         hostname = "unknown hostname"
-    print(f"\033[36m{ip}\033[0m <> \033[1;35m{hostname}\033[0m <> \033[91m{mac}\033[3;37m ({macAddrInfo(mac)})\033[0m")
+
+    normalString = f"\033[36m{ip}\033[0m <> \033[1;35m{hostname}\033[0m <> \033[91m{mac}\033[3;37m ({macAddrInfo(mac)})\033[0m"
+    purgedString = f"{ip} <> {hostname} <> {mac} ({macAddrInfo(mac)})\n"
+
+    print(normalString)
+    appendToFile(purgedString)
 
 def discover():
     """ discovers other hosts in the subnet """
@@ -77,7 +94,7 @@ def discover():
     arp = ARP(pdst=subnet)
     ether = Ether(dst=destination)
     packet = ether/arp
-    print(f"\033[3mSending arp packets to \033[0;36m{subnet}\033[0m ->\033[1;37m {destination}\033[0m...")
+    print(f"\033[1;91mSending arp packets to \033[0;36m{subnet}\033[0m ->\033[1;37m {destination}\033[0m...")
     result = srp(packet, timeout=3, verbose=0)[0]
     for sent, received in result:
         threading.Thread(target=processHost,args=(sent,received,)).start()
